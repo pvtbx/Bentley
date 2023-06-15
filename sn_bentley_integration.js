@@ -1,3 +1,9 @@
+/* ABOUT
+
+  This script is used to perform an integration between the Bentley staging site where all of Bentley's community data is stored,
+  and insert the community data into ServiceNow Communities
+
+*/
 // variables for staging community site
 let apiKey = 'cmak_2445_ILoBJinETRnWyKuzCjmDjQpAplziXpOYkEjUqehffds'; // staging community api key
 let username = '6dc09cb5-5442-47e2-a67d-088c2a11b8a5'; // staging community profile username
