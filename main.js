@@ -1,5 +1,8 @@
 import { createBentleyForums } from "./components/createForums.js";
 import { createBentleyForumUsers } from "./components/createForumUsers.js";
+import { createBentleyForumsThreads } from "./components/getForumThreads.js";
+import { createKnowledgeBases } from "./components/createKnowledgeBases.js";
+import { createGenerativeComponentQuestions } from "./components/createQuestionsGC.js";
 
 let apiKey = 'cmak_2445_ILoBJinETRnWyKuzCjmDjQpAplziXpOYkEjUqehffds'; // staging community api key
 let username = '6dc09cb5-5442-47e2-a67d-088c2a11b8a5'; // staging community profile username
@@ -23,8 +26,12 @@ function makeCallToStagingInstance(){
     return response.json(); // if the response is OK, this returns a promise
   })
   .then(data => {
-    createBentleyForums(data);
-    createBentleyForumUsers(data);
+    //createBentleyForums(data);
+    //createBentleyForumUsers(data);
+    //createKnowledgeBases(); - for some reason this gets called with createGenerativeComnonentQuestions
+    //createBentleyForumsThreads();
+    //createGenerativeComponentQuestions();
+
   });
 };
 makeCallToStagingInstance();

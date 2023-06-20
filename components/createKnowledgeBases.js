@@ -9,7 +9,7 @@ let serviceNowUser = 'pat.tipps'; // must be an account with 'Web services' chec
 let serviceNowPass = 'aJjC)B5>jY9p2yJe]}wt6z2=V5rrC>RAx4=jcA5D';
 let serviceNowUserAuth = Buffer.from(serviceNowUser + ':' + serviceNowPass).toString('base64'); // authorization must be a concatentation of servicenow username and password converted to base64
 
-function makeCallToStagingInstance(){
+export function createKnowledgeBases(){
     fetch(`${stagingCommunityInstanceAPI}`, { // make API call to staging community instance
     method: 'GET',
     headers: {
@@ -47,5 +47,5 @@ function makeCallToStagingInstance(){
         }
     });
   };
-  makeCallToStagingInstance();
+createKnowledgeBases();
 

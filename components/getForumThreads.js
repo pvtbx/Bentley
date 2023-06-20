@@ -11,13 +11,6 @@ export function createBentleyForumsThreads(data){
   for (let i = 0; i < data.Threads.length; i++) {
     console.log(data.Forums[i].Name + " " + data.Forums[i].Id); // log the data received
 
-    fetch(`https://stage-communities-bentley2-com.telligenthosting.net/api.ashx/vs/forums/${data.Forums[i].Id}/threads.json`)
-    .then()
-    .then()
-    .catch(error => {
-      console.log(error.message);
-    })
-
     let recordData = { // data that will be appended to new record
       "name": data.Forums[i].Name,
       "description": data.Forums[i].Description

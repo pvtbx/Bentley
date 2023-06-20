@@ -10,6 +10,9 @@ export function createBentleyForumUsers(data){
   // Gather the names of all Forums
   for (let i = 0; i < data.Forums.length; i++) {
     console.log(data.Forums[i].Name + " " + data.Forums[i].Id); // log the data received
+    if(data.Forums[i].Description.length == 0){
+      data.Forums[i].Description == "For questions and discussions relating to " + data.Forums[i].Name; 
+    }
     let forumUser = "Members of " + data.Forums[i].Name;
     let recordData = { // data that will be appended to new record
       "name": forumUser,
