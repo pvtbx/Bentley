@@ -1,4 +1,5 @@
 // variables for connecting to Bentley ServiceNow Dev Instance
+require('dotenv').config();
 let serviceNowInstance = 'https://bentleysystemsdev.service-now.com';
 let serviceNowTable = 'sn_communities_forum';
 let serviceNowUser = 'pat.tipps'; // must be an account with 'Web services' checked - can't be admin account
