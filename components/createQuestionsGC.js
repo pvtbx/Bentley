@@ -1,12 +1,17 @@
-// Import necessary modules
 import { DOMParser, XMLSerializer } from 'xmldom';
-import https from 'https';
 import axios from 'axios';
-import FormData from 'form-data';
+import cloudinary from 'cloudinary';
 
-// API credentials
-let apiKey = '<my-api-key>';
-let username = '<my-user-name>';
+// Cloudinary configuration
+cloudinary.v2.config({
+    cloud_name: 'dltlbdrja',
+    api_key: '522675282662213',
+    api_secret: '5vnWTo0sO8Z22EaDt_kfHQBAbzk',
+    secure: true
+});
+
+let apiKey = 'cmak_2445_ILoBJinETRnWyKuzCjmDjQpAplziXpOYkEjUqehffds';
+let username = '6dc09cb5-5442-47e2-a67d-088c2a11b8a5';
 let token = `${apiKey}:${username}`;
 let base64Token = Buffer.from(token).toString('base64');
 let listForumsEndpoint = "api.ashx/v2/forums/360/threads.json";
@@ -16,64 +21,44 @@ let serviceNowUser = 'pat.tipps';
 let serviceNowPass = 'aJjC)B5>jY9p2yJe]}wt6z2=V5rrC>RAx4=jcA5D';
 let serviceNowUserAuth = Buffer.from(serviceNowUser + ':' + serviceNowPass).toString('base64');
 
-// Imgur Client ID for API access - replace with your own
-const imgurClientId = '<your-imgur-client-id>';
-
 export async function createGenerativeComponentQuestions() {
     try {
-        // Make a request to the staging API
         const response = await axios.get(stagingCommunityInstanceAPI, {
             headers: {
                 'Rest-User-Token': base64Token
             }
         });
 
-        // Extract threads from the response
         const threads = response.data.Threads;
 
-        // Iterate over each thread
         for (let i = 0; i < threads.length; i++) {
             let bodyContent = threads[i].Body;
 
-            // Parse the body content as HTML
             const parser = new DOMParser();
             const doc = parser.parseFromString(bodyContent, 'text/html');
-
-            // Find all image tags in the document
             const imgTags = doc.getElementsByTagName('img');
 
-            // Initialize an array to hold promises for each image upload
-            let uploadPromises = [];
-
-            // Iterate over each image tag
+            let downloadPromises = [];
             for (let j = 0; j < imgTags.length; j++) {
                 const img = imgTags[j];
                 const oldUrl = img.getAttribute('src');
-
-                // Create a promise to upload the image to Imgur and replace the src attribute
-                const uploadPromise = uploadImageToImgur(oldUrl, imgurClientId).then(newUrl => {
+                const downloadPromise = uploadImage(oldUrl).then(newUrl => {
                     img.setAttribute('src', newUrl);
                 });
-
-                // Add the promise to the array
-                uploadPromises.push(uploadPromise);
+                downloadPromises.push(downloadPromise);
             }
 
-            // Wait for all images to be uploaded
-            await Promise.all(uploadPromises);
+            await Promise.all(downloadPromises);
 
-            // Serialize the updated document back into a string
             const serializer = new XMLSerializer();
             const updatedBodyContent = serializer.serializeToString(doc);
 
-            // Prepare the data to be posted to the ServiceNow API
             let threadRecord = {
                 "question": threads[i].Subject + " [Generative Components Forum]",
                 "question_details": updatedBodyContent,
                 "kb_knowledge_base": "Generative Components"
             };
 
-            // Post the data to the ServiceNow API
             await axios.post('https://bentleysystemsdev.service-now.com/api/now/table/kb_social_qa_question', threadRecord, {
                 headers: {
                     'Authorization': 'Basic ' + serviceNowUserAuth,
@@ -81,43 +66,31 @@ export async function createGenerativeComponentQuestions() {
                 }
             });
 
-            // Log a success message
             console.log(`Thread ${threads[i].Subject} has been successfully migrated.`);
         }
     } catch (error) {
-        // Log any errors that occur
         console.error(error.message);
     }
 }
 
-// Function to upload an image to Imgur and return the new URL
-async function uploadImageToImgur(url, clientId) {
-    // Make a GET request to the image URL and receive the response as a stream
-    const response = await axios({
-        method: 'get',
-        url: url,
-        responseType: 'stream'
-    });
+// Uploads an image file
+async function uploadImage(url) {
+    // Use the uploaded file's name as the asset's public ID and 
+    // allow overwriting the asset with new versions
+    const options = {
+        use_filename: true,
+        unique_filename: false,
+        overwrite: true,
+    };
 
-    // Initialize form data
-    let formData = new FormData();
-
-    // Append the image stream to the form data
-    formData.append('image', response.data);
-
-    // Post the image to Imgur
-    const imgurResponse = await axios.post('https://api.imgur.com/3/image', formData, {
-        headers: {
-            // Include the Imgur Client ID in the Authorization header
-            'Authorization': `Client-ID ${clientId}`,
-            // Spread the form data headers
-            ...formData.getHeaders()
-        }
-    });
-
-    // Return the link of the uploaded image
-    return imgurResponse.data.data.link;
+    try {
+        // Upload the image
+        const result = await cloudinary.v2.uploader.upload(url, options);
+        // Construct the full URL of the image
+        const imageUrl = `https://res.cloudinary.com/dltlbdrja/image/upload/${result.public_id}`;
+        return imageUrl;
+    } catch (error) {
+        console.error(error);
+    }
 }
-
-// Call the main function
 createGenerativeComponentQuestions();
