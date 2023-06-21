@@ -4,7 +4,6 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 
-
 let apiKey = 'cmak_2445_ILoBJinETRnWyKuzCjmDjQpAplziXpOYkEjUqehffds';
 let username = '6dc09cb5-5442-47e2-a67d-088c2a11b8a5';
 let token = `${apiKey}:${username}`;
