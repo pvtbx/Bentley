@@ -14,7 +14,7 @@ let apiKey = 'cmak_2445_ILoBJinETRnWyKuzCjmDjQpAplziXpOYkEjUqehffds';
 let username = '6dc09cb5-5442-47e2-a67d-088c2a11b8a5';
 let token = `${apiKey}:${username}`;
 let base64Token = Buffer.from(token).toString('base64');
-let listForumsEndpoint = "api.ashx/v2/forums/360/threads.json";
+let listForumsEndpoint = "api.ashx/v2/forums.json";
 let stagingCommunityInstanceAPI = `https://stage-communities-bentley2-com.telligenthosting.net/${listForumsEndpoint}`;
 
 let serviceNowUser = 'pat.tipps';
@@ -23,51 +23,69 @@ let serviceNowUserAuth = Buffer.from(serviceNowUser + ':' + serviceNowPass).toSt
 
 export async function createGenerativeComponentQuestions() {
     try {
-        const response = await axios.get(stagingCommunityInstanceAPI, {
+        // Fetch all forums
+        const forumsResponse = await axios.get(stagingCommunityInstanceAPI, {
             headers: {
                 'Rest-User-Token': base64Token
             }
         });
 
-        const threads = response.data.Threads;
+        const forums = forumsResponse.data; // Assuming this returns an array of forum objects
+        console.log(forums.Forums[0].Name);
+        // for (let forum of forums) {
+        //     let forumId = forum.id; // Assuming each forum object has an id property
+        //     console.log(forumId);
 
-        for (let i = 0; i < threads.length; i++) {
-            let bodyContent = threads[i].Body;
+            // Now fetch threads for each forum
+            // let listThreadsEndpoint = `api.ashx/v2/forums/${forumId}/threads.json`;
+            // let stagingInstanceAPI = `https://stage-communities-bentley2-com.telligenthosting.net/${listThreadsEndpoint}`;
 
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(bodyContent, 'text/html');
-            const imgTags = doc.getElementsByTagName('img');
+            // const response = await axios.get(stagingInstanceAPI, {
+            //     headers: {
+            //         'Rest-User-Token': base64Token
+            //     }
+            // });
 
-            let downloadPromises = [];
-            for (let j = 0; j < imgTags.length; j++) {
-                const img = imgTags[j];
-                const oldUrl = img.getAttribute('src');
-                const downloadPromise = uploadImage(oldUrl).then(newUrl => {
-                    img.setAttribute('src', newUrl);
-                });
-                downloadPromises.push(downloadPromise);
-            }
+            // const threads = response.data.Threads;
 
-            await Promise.all(downloadPromises);
+            // for (let i = 0; i < threads.length; i++) {
+            //     let bodyContent = threads[i].Title;
 
-            const serializer = new XMLSerializer();
-            const updatedBodyContent = serializer.serializeToString(doc);
+                // const parser = new DOMParser();
+                // const doc = parser.parseFromString(bodyContent, 'text/html');
+                // const imgTags = doc.getElementsByTagName('img');
 
-            let threadRecord = {
-                "question": threads[i].Subject + " [Generative Components Forum]",
-                "question_details": updatedBodyContent,
-                "kb_knowledge_base": "Generative Components"
-            };
+                // let downloadPromises = [];
+                // for (let j = 0; j < imgTags.length; j++) {
+                //     const img = imgTags[j];
+                //     const oldUrl = img.getAttribute('src');
+                //     const downloadPromise = uploadImage(oldUrl).then(newUrl => {
+                //         img.setAttribute('src', newUrl);
+                //     });
+                //     downloadPromises.push(downloadPromise);
+                // }
 
-            await axios.post('https://bentleysystemsdev.service-now.com/api/now/table/kb_social_qa_question', threadRecord, {
-                headers: {
-                    'Authorization': 'Basic ' + serviceNowUserAuth,
-                    'Content-Type': 'application/json'
-                }
-            });
+                // await Promise.all(downloadPromises);
 
-            console.log(`Thread ${threads[i].Subject} has been successfully migrated.`);
-        }
+                // const serializer = new XMLSerializer();
+                // const updatedBodyContent = serializer.serializeToString(doc);
+
+                // let threadRecord = {
+                //     "question": threads[i].Subject + `[${threads[i].Subject}]`, // change this back to [Generative Components]
+                //     "question_details": bodyContent, // change this back to updatedBodyContent
+                //     // "kb_knowledge_base": "Generative Components"
+                // };
+
+                // await axios.post('https://bentleysystemsdev.service-now.com/api/now/table/kb_social_qa_question', threadRecord, {
+                //     headers: {
+                //         'Authorization': 'Basic ' + serviceNowUserAuth,
+                //         'Content-Type': 'application/json'
+                //     }
+                // });
+
+                // console.log(`Thread ${threads[i].Subject} has been successfully migrated.`);
+            // }
+        // }
     } catch (error) {
         console.error(error.message);
     }
@@ -75,22 +93,13 @@ export async function createGenerativeComponentQuestions() {
 
 // Uploads an image file
 async function uploadImage(url) {
-    // Use the uploaded file's name as the asset's public ID and 
-    // allow overwriting the asset with new versions
-    const options = {
-        use_filename: true,
-        unique_filename: false,
-        overwrite: true,
-    };
-
     try {
-        // Upload the image
-        const result = await cloudinary.v2.uploader.upload(url, options);
-        // Construct the full URL of the image
-        const imageUrl = `https://res.cloudinary.com/dltlbdrja/image/upload/${result.public_id}`;
-        return imageUrl;
+        const result = await cloudinary.v2.uploader.upload(url, {
+            folder: 'generative_components'
+        });
+        return result.secure_url;
     } catch (error) {
-        console.error(error);
+        console.error(error.message);
     }
 }
 createGenerativeComponentQuestions();
