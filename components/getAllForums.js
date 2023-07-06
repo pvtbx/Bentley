@@ -1,13 +1,17 @@
+import dotenv from 'dotenv';
+import { DOMParser } from "xmldom";
+dotenv.config({path: '../keys.env'});
+
 (async function () {
-  let serviceNowUser = "pat.tipps";
-  let serviceNowPass = "aJjC)B5>jY9p2yJe]}wt6z2=V5rrC>RAx4=jcA5D";
+  let serviceNowUser = process.env.SN_API_USER;
+  let serviceNowPass = process.env.SN_API_PASS;
   let serviceNowUserAuth = Buffer.from(
     serviceNowUser + ":" + serviceNowPass
   ).toString("base64");
 
-  let apiKey = "cmak_2445_ILoBJinETRnWyKuzCjmDjQpAplziXpOYkEjUqehffds";
-  let username = "6dc09cb5-5442-47e2-a67d-088c2a11b8a5";
-  let token = `${apiKey}:${username}`;
+  let verintAPIKey = process.env.VERINT_API_KEY;
+  let verintUsername = process.env.VERINT_API_USER;
+  let token = `${verintAPIKey}:${verintUsername}`;
   let base64Token = Buffer.from(token).toString("base64");
   let forumPage = 1;
   let forumPageResults = [];
@@ -29,9 +33,14 @@
       // add threads to ServiceNow
 
       let forumRecord = {
-        name: stagingSiteResponse.Forums[i].Name,
-        description: stagingSiteResponse.Forums[i].Description,
+        name: decodeHTML(stagingSiteResponse.Forums[i].Name),
+        description: decodeHTML(stagingSiteResponse.Forums[i].Description),
       };
+
+      function decodeHTML(html){
+        var text = new DOMParser().parseFromString(html, "text/html");
+        return text.body.textContent;
+      }
 
       const serviceNowQandATableRequest = await fetch(
         "https://bentleysystemsdev.service-now.com/api/now/table/sn_communities_forum",
